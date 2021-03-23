@@ -1,0 +1,4 @@
+XPATH_LINK_TO_ARTICLE = '//a[@class="empresasSect"]/@href' 
+XPATH_TITLE = "//a[@class='empresasSect']/text()"
+XPATH_SUMMARY = '//div[@class="lead"]/p/text()'
+XPATH_BODY ='//div[@class="html-content"]//text()'
