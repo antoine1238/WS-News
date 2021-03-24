@@ -7,13 +7,13 @@ import pandas as pd
 
 HOME_URL = 'https://www.larepublica.co/'
 
-XPATH_LINK_TO_ARTICLE = '//a[@class="empresasSect"]/@href' 
-XPATH_TITLE = "//a[@class='empresasSect']/text()"
+XPATH_LINK_TO_ARTICLE = '//a[@class="economiaSect"]/@href' 
+XPATH_TITLE = '//*[@id="vue-container"]/div[2]/div[1]/div[1]/div/div[2]/h2/a/text()'
 XPATH_SUMMARY = '//div[@class="lead"]/p/text()'
-XPATH_BODY ='//div[@class="html-content"]//text()'
+XPATH_BODY ='//div[@class="html-content"]/p/text()'
 
 
-def parse_notice(link, today):
+def parse_notice(link, df, today, i):
     try:
         response = requests.get(link)
         if response.status_code == 200:
@@ -21,17 +21,18 @@ def parse_notice(link, today):
             parsed = html.fromstring(notice)
 
             try:
-                title = parsed.xpath(XPATH_TITLE)[0]
+                title = link.replace("https://www.larepublica.co/economia/", "").replace("-", " ") 
                 summary = parsed.xpath(XPATH_SUMMARY)[0]
                 body = parsed.xpath(XPATH_BODY)
                 # Para convertirlo en un string
                 data_body = "".join(body)   
+
+                df.iloc[i] = (title, summary, data_body)
+                df.to_csv("{}/News.csv".format(today))
                 
-                df = pd.DataFrame({"Title": title, "Summary": summary, "Body": [data_body]})
-                df.to_csv("{}/{}.csv".format(today, title))
 
             except IndexError:
-                print("error")
+                print("Index Error")
                 return
         else:
             raise ValueError(f'Error: {response.status_code}')
@@ -40,6 +41,10 @@ def parse_notice(link, today):
 
 
 def parse_home():
+    # encargado de que la pagina principal carge.
+    # parsear su estructura HTML.
+    # tomar los links que queremos de la pagina. 
+    # crear una carpeta que tenga de nombre el dia actual y por ultimo iterar por cada link.
     try:
         response = requests.get(HOME_URL)
         if response.status_code == 200:
@@ -47,11 +52,16 @@ def parse_home():
             parsed = html.fromstring(home)
             links_to_notices = parsed.xpath(XPATH_LINK_TO_ARTICLE)
             today = datetime.date.today().strftime('%d-%m-%Y')
+
+            # limit is 9 News
+            df = pd.DataFrame(columns=['Title', 'Summary', 'Body'], index=range(10))
+            i = 0
             if not os.path.isdir(today):
                 os.mkdir(today)
             
             for link in links_to_notices:
-                parse_notice(link, today)
+                parse_notice(link, df, today, i)
+                i = i + 1 
 
         else:
             raise ValueError(f'Error: {response.status_code}')
