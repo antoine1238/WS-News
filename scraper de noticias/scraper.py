@@ -14,6 +14,9 @@ XPATH_BODY ='//div[@class="html-content"]/p/text()'
 
 
 def parse_notice(link, df, today, i):
+    # verify that the link works
+    # parse the html structure
+    # save the data we want in a csv file
     try:
         response = requests.get(link)
         if response.status_code == 200:
@@ -21,9 +24,11 @@ def parse_notice(link, df, today, i):
             parsed = html.fromstring(notice)
 
             try:
+                # I had trouble getting the title so I used your link and trimmed it a bit
                 title = link.replace("https://www.larepublica.co/economia/", "").replace("-", " ") 
                 summary = parsed.xpath(XPATH_SUMMARY)[0]
                 body = parsed.xpath(XPATH_BODY)
+
                 # Para convertirlo en un string
                 data_body = "".join(body)   
 
@@ -41,10 +46,10 @@ def parse_notice(link, df, today, i):
 
 
 def parse_home():
-    # encargado de que la pagina principal carge.
-    # parsear su estructura HTML.
-    # tomar los links que queremos de la pagina. 
-    # crear una carpeta que tenga de nombre el dia actual y por ultimo iterar por cada link.
+    # in charge that the main page loads
+    # parsing the HTML structure
+    # take the links we want from the page,
+    # create a folder that has the name of the current day and finally iterate through each link
     try:
         response = requests.get(HOME_URL)
         if response.status_code == 200:
